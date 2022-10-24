@@ -1,17 +1,25 @@
 #pragma once
 #include <Eigen/Dense>
 #include "PID.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 using namespace Eigen;
 
 class ControlSystem
 {
+
 	private:
 		double Kp = 0;
 		double Kd = 0;
 		PID pid = PID(0, 0, 0);
 		PID pidX = PID(0, 0, 0);
 		PID pidZ = PID(0, 0, 0);
+
+		static double Sq(const double val)
+		{
+			return val * val;
+		}
 
 	public:
 		ControlSystem(double Kp, double Kd, double KpA, double KdA, double KiA, double KpX, double KdX, double KiX, double KpZ, double KdZ, double KiZ)
@@ -68,11 +76,42 @@ class ControlSystem
 			return val;
 		}
 
+
+		Quaterniond getPosControlQuaternionInvariantPsi(Quaterniond targetQuaternion, Vector3d position, Vector3d target, Vector3d velocity, double KP, double KD)
+		{
+
+			//DBG 
+			velocity = velocity * 0;
+			//DBG 
+
+
+			Vector3d error = (target - position) - velocity * KD;
+			error.y() = 0;	//(x, 0, z) 
+
+			Vector3d axis = error.cross(Vector3d(0, 1, 0));
+			axis.normalize();
+
+			double angle = error.norm();
+
+			angle = Constrain(angle, -1 / 10.0, +1 / 10.0);
+
+			axis = axis * abs(sin(angle));
+			Quaterniond q = Quaterniond(cos(angle), axis.x(), axis.y(), axis.z());
+
+			//std::cout << q << std::endl;
+			//std::cout << q * targetQuaternion.conjugate() << std::endl;
+
+			//return q*targetQuaternion.conjugate();
+			return targetQuaternion;
+		}
+			
 		Quaterniond getPosControlQuaternion(Vector3d position, Vector3d target, Vector3d velocity, double KP, double KD)
 		{
 			Vector3d error = (target - position) - velocity*KD;
-			error.y() = 0;
+			error.y() = 0;	//(x, 0, z) 
+
 			Vector3d axis = error.cross(Vector3d(0, 1, 0));
+			axis.normalize();
 
 			double angle = error.norm();
 

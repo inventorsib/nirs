@@ -53,7 +53,9 @@ int main()
     //Quaterniond quaternion = Quaterniond(0.243, 0.299, 0.634, 0.670);
     //Quaterniond quaternion = Quaterniond(0.98, 0, 0, 0.197);
     //Quaterniond quaternion = Quaterniond(1, 0, 0, 0);
-    Quaterniond quaternion = Quaterniond(0.711, 0.194, 0.640, 0.216);
+    Quaterniond quaternion = Quaterniond(0, 0, 1, 0);
+    //Quaterniond quaternionTarget = Quaterniond(0.383, 0, 0.924, 0);
+    Quaterniond quaternionTarget = Quaterniond(1, 0, 0, 0);
 
     Vector3d position = Vector3d(std::stod(state[0]), std::stod(state[1]), std::stod(state[2]));
     //Vector3d position = Vector3d(4, 4, 4); // Vector3d::Ones();
@@ -73,7 +75,8 @@ int main()
 
     while (quadcopter.GetTime()<10)
     {
-        Quaterniond targetQuaternion = controller.getPosControlQuaternion(quadcopter.GetPosition(), Vector3d(1, 1, 1), quadcopter.GetVelocity(), 0.1, 1);
+       // Quaterniond targetQuaternion = controller.getPosControlQuaternion(quadcopter.GetPosition(), Vector3d(1, 1, 1), quadcopter.GetVelocity(), 0.1, 1);
+        Quaterniond targetQuaternion = controller.getPosControlQuaternionInvariantPsi(quaternionTarget, quadcopter.GetPosition(), Vector3d(1, 1, 1), quadcopter.GetVelocity(), 0.1, 1);
         Vector3d M = controller.getControlMomentStabilize(targetQuaternion, quadcopter.GetQuaternion(), quadcopter.GetAngularVelocity());
 
         double vy_g = quadcopter.GetVelocity().y();
